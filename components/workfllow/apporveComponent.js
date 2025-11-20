@@ -1,17 +1,94 @@
 import { Button } from 'kintone-ui-component/lib/button';
+import { Dialog } from "kintone-ui-component/lib/dialog";
+
+export class RenderComponent {
+    renderHeaderCheckbox(table, onSelectAll) {
+        const theadRow = table.querySelector("thead th");
+        if (!theadRow || theadRow.querySelector(".my-safe-checkbox-header")) return;
+        const th = document.createElement("th");
+        th.className = "my-safe-checkbox-header";
+        th.style.textAlign = "center";
+        th.style.width = "60px";
+
+        const checkAll = document.createElement("input");
+        checkAll.type = "checkbox";
+        checkAll.onchange = () => onSelectAll(checkAll.checked);
+
+        th.appendChild(checkAll);
+        theadRow.insertBefore(th, theadRow.firstChild);
+    }
+
+    renderRowCheckbox(row, recordId, onChange) {
+        if (row.querySelector(".my-safe-checkbox-cell")) return;
+
+        const td = document.createElement("td");
+        td.className = "my-safe-checkbox-cell";
+        td.style.textAlign = "center";
+        td.style.width = "60px";
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.className = "my-safe-checkbox";
+
+        checkbox.onchange = () => onChange(recordId, checkbox.checked);
+
+        td.appendChild(checkbox);
+
+        row.insertBefore(td, row.firstElementChild);
+    }
+
+    approveRender(event) {
+        const header = kintone.app.getHeaderMenuSpaceElement();
+
+        const button = new Button({
+            text: 'Submit',
+            type: 'submit'
+        });
 
 
-export function apporveRender(event) {
-    const header = kintone.app.getHeaderMenuSpaceElement();
+        const okButton = new Button({
+            text: 'OK',
+            type: 'submit'
+        });
+        const cancelButton = new Button({
+            text: 'Cancel',
+            type: 'normal'
+        });
 
-    const button = new Button({
-        text: 'Submit',
-        type: 'submit'
-    });
-    button.addEventListener('click', clickEvent => {
-        console.log(clickEvent);
-    });
+        okButton.addEventListener('click', () => {
+            // call api update
+            dialog.close()
+        });
+        cancelButton.addEventListener('click', () => {
+            dialog.close()
+        });
+        const divEl = document.createElement('div');
+        divEl.appendChild(okButton);
+        divEl.appendChild(cancelButton);
 
-    header.appendChild(button);
-    return event;
+        const dialog = new Dialog({
+            title: 'Title',
+            header: '<div>This is Header</div>',
+            content: '<div>This is Content</div>',
+            footer: divEl,
+            className: 'options-class',
+            id: 'options-id',
+            icon: 'info',
+            container: document.body,
+            footerVisible: true
+        });
+
+        dialog.addEventListener('close', event => {
+            dialog.close();
+        });
+
+        button.addEventListener('click', clickEvent => {
+            console.log(clickEvent);
+
+            dialog.open();
+        });
+
+        header.appendChild(button);
+        return event;
+    }
 }
