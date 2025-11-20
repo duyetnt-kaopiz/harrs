@@ -1,0 +1,20 @@
+{
+  "name": "harrs",
+  "version": "1.0.0",
+  "main": "desktop.js",
+  "scripts": {
+    "build": "webpack",
+    "deploy": "npm run build && kintone-customize-uploader customize-manifest.json --config kintone.config.json",
+    "watch": "npm-run-all -p watch:build watch:deploy"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "kintone-customize-uploader": "^0.0.5",
+    "npm-run-all": "^4.1.5",
+    "webpack": "^5.103.0",
+    "webpack-cli": "^6.0.1"
+  }
+}
