@@ -21,16 +21,9 @@ export class RecordRepository {
         }));
     }
 
-    async updateRecordStatusMany(recordIds, actionName, assignee) {
-        const payload = {
-            app: kintone.app.getId(),
-            records: recordIds.map(id => ({
-                id,
-                action: actionName,
-                assignee
-            }))
-        };
+    async updateRecordStatusMany(payload) {
 
+        console.log("payload: ", payload)
         return await kintone.api(
             kintone.api.url('/k/v1/records/status.json', true),
             "PUT",

@@ -1,6 +1,9 @@
 import { Button } from 'kintone-ui-component/lib/button';
 import { Dialog } from "kintone-ui-component/lib/dialog";
 import { Dropdown } from "kintone-ui-component/lib/dropdown";
+import { UserOrgGroupSelect } from "kintone-ui-component/lib/user-org-group-select";
+import { WorkFlowService } from "../../services/workfllow/WorkFlowService.js";
+const workFollowService = new WorkFlowService();
 
 export class WorkFlowComponent {
 
@@ -16,43 +19,73 @@ export class WorkFlowComponent {
      */
     renderDialog(statusList, assigneeList, onConfirm) {
         const statusDropdown = new Dropdown({
-            label: 'Status:',
+            label: 'Chọn trạng thái',
+            id: 'status-id',
             requiredIcon: true,
             items: statusList.map(s => ({ value: s, label: s }))
         });
-        const assigneeDropdown = new Dropdown({
-            label: 'User:',
+
+        const assigneeDropdown = new UserOrgGroupSelect({
+            label: 'Chọn người xử lý',
             items: assigneeList.map(u => ({
                 value: u.code,
-                label: u.name
-            }))
+                label: u.name,
+                type: 'user'
+            })),
+            className: 'options-class',
+            icon: 'user',
+            id: 'user-id',
+            placeholder: 'Please select assignees',
+            visible: true,
+            disabled: false
         });
-        const okBtn = new Button({ text: "Xác nhận", type: "submit" });
-        const cancelBtn = new Button({ text: "Hủy", type: "normal" });
-        // okBtn.addEventListener('click', clickEvent => {
-        //     onConfirm({
-        //         status: statusDropdown.value,
-        //         assignee: assigneeDropdown.value
-        //     });
-        //     this.dialog.close();
-        // });
+
+        const btnApprove = new Button({ text: "Approve", type: "submit" });
+        const cancelBtn = new Button({ text: "Cancel", type: "normal" });
+
+        btnApprove.addEventListener('click', async clickEvent => {
+            try {
+                const selectedStatus = statusDropdown.value;
+                const assignee = assigneeDropdown.value[0];
+                if (!selectedStatus || !assignee) {
+                    alert('Vui lòng chọn trạng thái và người xử lý.');
+                    return;
+                }
+
+                const recordIds = Object.keys(workFollowService.checkedRecords);
+                if (recordIds.length === 0) {
+                    alert('Vui lòng chọn ít nhất một bản ghi.');
+                    return;
+                }
+
+                const actionName = await workFollowService.getActionNameByStatus(selectedStatus);
+
+                await workFollowService.updateWorkflowMany(recordIds, actionName, assignee);
+
+                alert('Cập nhật trạng thái thành công!');
+                location.reload();
+            } catch (err) {
+                console.error(err);
+                alert('Có lỗi xảy ra: ' + err.message);
+            } finally {
+                this.dialog.close();
+            }
+        });
+
+
         cancelBtn.addEventListener('click', clickEvent => {
-            this.dialog.close()
-        });
-        okBtn.addEventListener('click', clickEvent => {
             this.dialog.close()
         });
 
         const divFooter = document.createElement('div');
-        divFooter.appendChild(okBtn);
+        divFooter.appendChild(btnApprove);
         divFooter.appendChild(cancelBtn);
 
         const divContent = document.createElement("div");
         divContent.id = "content-modal";
-        divContent.appendChild(document.createElement("div")).innerHTML = "<b>Chọn trạng thái</b>";
         divContent.appendChild(statusDropdown);
         divContent.appendChild(document.createElement("br"));
-        divContent.appendChild(document.createElement("div")).innerHTML = "<b>Chọn người xử lý</b>";
+        divContent.appendChild(document.createElement("br"));
         divContent.appendChild(assigneeDropdown);
 
         this.dialog = new Dialog({
@@ -121,9 +154,13 @@ export class WorkFlowComponent {
     renderButtonModal() {
         const header = kintone.app.getHeaderMenuSpaceElement();
         const button = new Button({
+            id: 'btn-show-modal',
             text: 'Submit',
             type: 'submit'
         });
+        if (document.getElementById('btn-show-modal') != null) {
+            return;
+        }
         header.appendChild(button);
         return button;
     }

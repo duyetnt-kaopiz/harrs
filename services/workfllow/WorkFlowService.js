@@ -67,8 +67,27 @@ export class WorkFlowService {
         return found.name;
     }
 
-    /** Update Workflow (hàng loạt) */
+    /**
+     * @function handle update status workflow with path
+     * @param recordIds
+     * @param actionName
+     * @param assigneeCode
+     * @returns {Promise<*>}
+     */
     async updateWorkflowMany(recordIds, actionName, assigneeCode) {
-        return await this.repo.updateRecordStatusMany(recordIds, actionName, assigneeCode);
+
+        const cleanIds = recordIds.filter(id => id && id !== 'undefined' && id.trim() !== '');
+
+        const body = cleanIds.map(id => ({
+            id,
+            action: actionName,
+            assignee: assigneeCode
+        }));
+
+        const payload = {
+            app: kintone.app.getId(),
+            records: body
+        };
+        return await this.repo.updateRecordStatusMany(payload);
     }
 }
