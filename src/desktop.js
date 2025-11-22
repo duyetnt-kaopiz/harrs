@@ -1,13 +1,15 @@
-import { RenderComponent } from "../components/workfllow/apporveComponent.js";
-import { WorkFollowService } from "../services/workfllow/CheckboxService.js";
+import { WorkFlowComponent } from "../components/workfllow/WorkFlowComponent.js";
+import { WorkFlowService } from "../services/workfllow/WorkFlowService.js";
 
-const renderComponent = new RenderComponent();
-const workFollowService = new WorkFollowService();
+const renderComponent = new WorkFlowComponent();
+const workFollowService = new WorkFlowService();
 
 kintone.events.on("app.record.index.show", function(event) {
     const records = event.records;
 
-    const elements = kintone.app.getFieldElements("role");
+    console.log("rsssse: ", records)
+
+    const elements = kintone.app.getFieldElements("Record_number");
 
     if (!records || !elements) return event;
 
@@ -26,9 +28,11 @@ kintone.events.on("app.record.index.show", function(event) {
         const row = el.parentElement;
         const recordId = records[i].$id.value;
 
-        renderComponent.renderRowCheckbox(row, recordId, (id, checked) => {
-            workFollowService.onCheck(id, checked);
-        });
+        renderComponent.renderRowCheckbox(
+            row, recordId,
+            (id, checked) => workFollowService.onCheck(id, checked),
+            workFollowService.isChecked(recordId)
+        );
     });
 
     return event;

@@ -1,7 +1,7 @@
 import { Button } from 'kintone-ui-component/lib/button';
 import { Dialog } from "kintone-ui-component/lib/dialog";
 
-export class RenderComponent {
+export class WorkFlowComponent {
     renderHeaderCheckbox(table, onSelectAll) {
         const theadRow = table.querySelector("thead th");
         if (!theadRow || theadRow.querySelector(".my-safe-checkbox-header")) return;
@@ -18,21 +18,23 @@ export class RenderComponent {
         theadRow.insertBefore(th, theadRow.firstChild);
     }
 
-    renderRowCheckbox(row, recordId, onChange) {
+    renderRowCheckbox(row, recordId, onChange, defaultChecked = false) {
         if (row.querySelector(".my-safe-checkbox-cell")) return;
-
         const td = document.createElement("td");
         td.className = "my-safe-checkbox-cell";
         td.style.textAlign = "center";
         td.style.width = "60px";
 
-        const checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.className = "my-safe-checkbox";
+        const checkBox = document.createElement("input");
+        checkBox.type = "checkbox";
+        checkBox.className = "my-safe-checkbox";
+        checkBox.dataset.recordId = recordId;
+        checkBox.checked = defaultChecked;
 
-        checkbox.onchange = () => onChange(recordId, checkbox.checked);
-
-        td.appendChild(checkbox);
+        checkBox.addEventListener("change", () => {
+            onChange(recordId, checkBox.checked);
+        });
+        td.appendChild(checkBox);
 
         row.insertBefore(td, row.firstElementChild);
     }
