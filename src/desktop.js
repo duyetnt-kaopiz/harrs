@@ -4,17 +4,26 @@ import { WorkFlowService } from "../services/workfllow/WorkFlowService.js";
 const renderComponent = new WorkFlowComponent();
 const workFollowService = new WorkFlowService();
 
-kintone.events.on("app.record.index.show", function(event) {
+kintone.events.on("app.record.index.show", async function(event) {
     const records = event.records;
-
-    console.log("rsssse: ", records)
-
     const elements = kintone.app.getFieldElements("Record_number");
 
-    if (!records || !elements) return event;
+    if (!records) return event;
 
-    // add button approe
-    renderComponent.approveRender(event);
+    // add button approve
+    const btnModal = renderComponent.renderButtonModal();
+
+    const status = await workFollowService.getStatusList();
+    const users = await workFollowService.getAssigneeList();
+    const dialog = await renderComponent.renderDialog(status, users, btnModal);
+
+    console.log("status:===> ", status)
+    console.log("users:===> ", users)
+    console.log("dialog:=====> ", dialog)
+
+    btnModal.addEventListener('click', clickEvent => {
+        dialog.open();
+    });
 
     const table = document.querySelector("table.recordlist-gaia");
 

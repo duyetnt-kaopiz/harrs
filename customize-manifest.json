@@ -5,7 +5,9 @@
     "js": [
       "dist/desktop.js"
     ],
-    "css": []
+    "css": [
+      "dist/style.css"
+    ]
   },
   "mobile": {
     "js": [],
