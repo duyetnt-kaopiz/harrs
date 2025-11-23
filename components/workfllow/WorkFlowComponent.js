@@ -18,6 +18,10 @@ export class WorkFlowComponent {
      * @param {*} onConfirm
      */
     renderDialog(statusList, assigneeList, onConfirm) {
+        if (this.dialog) {
+            this.dialog.close();
+            this.dialog = null;
+        }
         const statusDropdown = new Dropdown({
             label: 'Chọn trạng thái',
             id: 'status-id',
@@ -105,6 +109,7 @@ export class WorkFlowComponent {
 
         const checkAll = document.createElement("input");
         checkAll.type = "checkbox";
+        checkAll.className = "check-all";
         checkAll.onchange = () => onSelectAll(checkAll.checked);
 
         th.appendChild(checkAll);
@@ -147,7 +152,8 @@ export class WorkFlowComponent {
         const button = new Button({
             id: 'btn-show-modal',
             text: 'ステータス更新',
-            type: 'submit'
+            type: 'submit',
+            disabled: true
         });
         if (document.getElementById('btn-show-modal') != null) {
             return;

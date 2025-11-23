@@ -23,6 +23,7 @@ export class WorkFlowService {
             delete this.checkedRecords[recordId];
         }
         this.saveCheckedRecords();
+        this.updateApproveButtonState(this.checkedRecords);
     }
 
     onCheckAll(checked, table) {
@@ -38,6 +39,7 @@ export class WorkFlowService {
             }
         });
         this.saveCheckedRecords();
+        this.updateApproveButtonState(this.checkedRecords);
     }
 
     isChecked(recordId) {
@@ -54,6 +56,11 @@ export class WorkFlowService {
         localStorage.removeItem(this.storageKey);
     }
 
+    updateApproveButtonState(checkedRecords) {
+        const btnShowModal = document.getElementById("btn-show-modal");
+        if (!btnShowModal) return;
+        btnShowModal.disabled = Object.keys(checkedRecords).length === 0;
+    }
     /** Lấy danh sách trạng thái từ Process Management */
     async getStatusList() {
         const data = await this.repo.getProcessStatus(this.appId);
@@ -110,15 +117,14 @@ export class WorkFlowService {
      * @returns {Promise<*>}
      */
     async updateWorkflowMany(recordIds, actionName, assigneeCode) {
-
         const cleanIds = recordIds.filter(id => id && id !== 'undefined' && id.trim() !== '');
-
         const body = cleanIds.map(id => ({
             id,
             action: actionName,
             assignee: assigneeCode
         }));
 
+        console.log("body==> ", body)
         const payload = {
             app: this.appId,
             records: body

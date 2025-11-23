@@ -52,5 +52,7 @@ kintone.events.on("app.record.index.show", async function(event) {
         });
     }
 
+
+
     return event;
 });
