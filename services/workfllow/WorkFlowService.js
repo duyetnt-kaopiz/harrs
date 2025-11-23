@@ -44,6 +44,16 @@ export class WorkFlowService {
         return !!this.checkedRecords[recordId];
     }
 
+    checkHeaderCheckbox(headerCheckbox, records) {
+        if (headerCheckbox) {
+            headerCheckbox.checked = records.every(r => this.isChecked(r.$id.value));
+        }
+    }
+
+    clearLocalStorage() {
+        localStorage.removeItem(this.storageKey);
+    }
+
     /** Lấy danh sách trạng thái từ Process Management */
     async getStatusList() {
         const data = await this.repo.getProcessStatus();
@@ -67,6 +77,29 @@ export class WorkFlowService {
         return found.name;
     }
 
+    async handleApprove(status, assignee, modal) {
+        try {
+            if (!status) {
+                return alert("Vui lòng chọn trạng thái.");
+            }
+            const recordIds = Object.keys(this.loadCheckedRecords());
+            if (recordIds.length === 0) {
+                return alert("Vui lòng chọn ít nhất một bản ghi.");
+            }
+            const actionName = await this.getActionNameByStatus(status);
+            await this.updateWorkflowMany(recordIds, actionName, assignee);
+
+            alert("Cập nhật trạng thái thành công!");
+            location.reload();
+        } catch (err) {
+            console.error(err);
+            alert("Có lỗi xảy ra: " + err.message);
+        }
+        finally {
+            modal.close()
+        }
+    }
+
     /**
      * @function handle update status workflow with path
      * @param recordIds
@@ -77,6 +110,7 @@ export class WorkFlowService {
     async updateWorkflowMany(recordIds, actionName, assigneeCode) {
 
         const cleanIds = recordIds.filter(id => id && id !== 'undefined' && id.trim() !== '');
+        console.log("cleanIds===> ", cleanIds)
 
         const body = cleanIds.map(id => ({
             id,
@@ -85,7 +119,7 @@ export class WorkFlowService {
         }));
 
         const payload = {
-            app: kintone.app.getId(),
+            app: this.appId,
             records: body
         };
         return await this.repo.updateRecordStatusMany(payload);

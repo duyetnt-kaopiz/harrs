@@ -8,3 +8,6 @@
 #user-id {
     width: 100%;
 }
+#btn-show-modal>button {
+    background-color: rgb(40, 167, 69);
+}

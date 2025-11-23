@@ -41,37 +41,15 @@ export class WorkFlowComponent {
         });
 
         const btnApprove = new Button({ text: "Approve", type: "submit" });
-        const cancelBtn = new Button({ text: "Cancel", type: "normal" });
+        const cancelBtn = new Button({ text: "Cancel", type: "alert" });
 
-        btnApprove.addEventListener('click', async clickEvent => {
-            try {
-                const selectedStatus = statusDropdown.value;
-                const assignee = assigneeDropdown.value[0];
-                if (!selectedStatus || !assignee) {
-                    alert('Vui lòng chọn trạng thái và người xử lý.');
-                    return;
-                }
-
-                const recordIds = Object.keys(workFollowService.checkedRecords);
-                if (recordIds.length === 0) {
-                    alert('Vui lòng chọn ít nhất một bản ghi.');
-                    return;
-                }
-
-                const actionName = await workFollowService.getActionNameByStatus(selectedStatus);
-
-                await workFollowService.updateWorkflowMany(recordIds, actionName, assignee);
-
-                alert('Cập nhật trạng thái thành công!');
-                location.reload();
-            } catch (err) {
-                console.error(err);
-                alert('Có lỗi xảy ra: ' + err.message);
-            } finally {
-                this.dialog.close();
-            }
+        btnApprove.addEventListener('click', () => {
+            onConfirm({
+                status: statusDropdown.value,
+                assignee: assigneeDropdown.value[0],
+                modal: this.dialog
+            });
         });
-
 
         cancelBtn.addEventListener('click', clickEvent => {
             this.dialog.close()
@@ -155,7 +133,7 @@ export class WorkFlowComponent {
         const header = kintone.app.getHeaderMenuSpaceElement();
         const button = new Button({
             id: 'btn-show-modal',
-            text: 'Submit',
+            text: 'ステータス更新',
             type: 'submit'
         });
         if (document.getElementById('btn-show-modal') != null) {
