@@ -1,11 +1,15 @@
 // services/CheckboxService.js
 import { RecordRepository } from "../../infrastructure/workfllow/RecordRepository.js";
+import { Spinner } from 'kintone-ui-component/lib/spinner';
+import {WorkFlowComponent} from "../../components/workfllow/WorkFlowComponent.js";
+
 export class WorkFlowService {
     constructor() {
         this.storageKey = "checked-records";
         this.checkedRecords = this.loadCheckedRecords();
         this.appId = kintone.app.getId();
         this.repo = new RecordRepository();
+        this.component = new WorkFlowComponent();
     }
 
     loadCheckedRecords() {
@@ -95,6 +99,7 @@ export class WorkFlowService {
                 showGeneralError("Vui lòng chọn ít nhất một bản ghi.");
                 return;
             }
+            this.component.createGlobalSpinner(true);
             const actionName = await this.getActionNameByStatus(status);
             await this.updateWorkflowMany(recordIds, actionName, assignee);
 
@@ -105,7 +110,7 @@ export class WorkFlowService {
             showGeneralError(err.message)
             alert("Có lỗi xảy ra: " + err.message);
         } finally {
-            //
+            this.component.createGlobalSpinner(false);
         }
     }
 
@@ -124,7 +129,6 @@ export class WorkFlowService {
             assignee: assigneeCode
         }));
 
-        console.log("body==> ", body)
         const payload = {
             app: this.appId,
             records: body

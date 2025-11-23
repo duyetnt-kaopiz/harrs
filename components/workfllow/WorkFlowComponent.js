@@ -1,9 +1,8 @@
-import { Button } from 'kintone-ui-component/lib/button';
-import { Dialog } from "kintone-ui-component/lib/dialog";
-import { Dropdown } from "kintone-ui-component/lib/dropdown";
-import { UserOrgGroupSelect } from "kintone-ui-component/lib/user-org-group-select";
-import { WorkFlowService } from "../../services/workfllow/WorkFlowService.js";
-const workFollowService = new WorkFlowService();
+import {Button} from 'kintone-ui-component/lib/button';
+import {Dialog} from "kintone-ui-component/lib/dialog";
+import {Dropdown} from "kintone-ui-component/lib/dropdown";
+import {Spinner} from 'kintone-ui-component/lib/spinner';
+import {UserOrgGroupSelect} from "kintone-ui-component/lib/user-org-group-select";
 
 export class WorkFlowComponent {
 
@@ -19,8 +18,7 @@ export class WorkFlowComponent {
      */
     renderDialog(statusList, assigneeList, onConfirm) {
         if (this.dialog) {
-            this.dialog.close();
-            this.dialog = null;
+            return;
         }
         const statusDropdown = new Dropdown({
             label: 'Chọn trạng thái',
@@ -28,18 +26,6 @@ export class WorkFlowComponent {
             requiredIcon: true,
             items: statusList.map(s => ({ value: s, label: s }))
         });
-
-        const statusError = document.createElement("div");
-        statusError.className = "wf-error";
-        statusError.style.color = "red";
-        statusError.style.fontSize = "12px";
-        statusError.style.marginTop = "4px";
-        const showGeneralError = document.createElement("div");
-        statusError.className = "wf-error";
-        statusError.style.color = "red";
-        statusError.style.fontSize = "12px";
-        statusError.style.marginTop = "4px";
-
         const assigneeDropdown = new UserOrgGroupSelect({
             label: 'Chọn người xử lý',
             items: assigneeList.map(u => ({
@@ -54,6 +40,17 @@ export class WorkFlowComponent {
             visible: true,
             disabled: false
         });
+
+        const statusError = document.createElement("div");
+        statusError.className = "wf-error";
+        statusError.style.color = "red";
+        statusError.style.fontSize = "12px";
+        statusError.style.marginTop = "4px";
+        const showGeneralError = document.createElement("div");
+        showGeneralError.className = "wf-error";
+        showGeneralError.style.color = "red";
+        showGeneralError.style.fontSize = "12px";
+        showGeneralError.style.marginTop = "4px";
 
         const btnApprove = new Button({ text: "Approve", type: "submit" });
         const cancelBtn = new Button({ text: "Cancel", type: "alert" });
@@ -160,5 +157,44 @@ export class WorkFlowComponent {
         }
         header.appendChild(button);
         return button;
+    }
+
+    createGlobalSpinner(isLoading) {
+        const existingWrapper = document.getElementById("wf-global-spinner");
+        if (existingWrapper) {
+            if (this.spinnerInstance) {
+                isLoading ? this.spinnerInstance.open() : this.spinnerInstance.close();
+                existingWrapper.style.display = isLoading ? "flex" : "none";
+            }
+            return;
+        }
+
+        const wrapper = document.createElement("div");
+        wrapper.id = "wf-global-spinner";
+        wrapper.style.position = "fixed";
+        wrapper.style.top = 0;
+        wrapper.style.left = 0;
+        wrapper.style.width = "100vw";
+        wrapper.style.height = "100vh";
+        wrapper.style.background = "rgba(0,0,0,0.2)";
+        wrapper.style.display = "none";
+        wrapper.style.alignItems = "center";
+        wrapper.style.justifyContent = "center";
+        wrapper.style.zIndex = 9999;
+
+        const spinner = new Spinner({
+            isVisible: true,
+            size: "large",
+            text: 'now loading...',
+            className: 'options-class',
+            id: 'options-id',
+            container: document.body
+        });
+
+        wrapper.appendChild(spinner);
+        document.body.appendChild(wrapper);
+        this.spinnerInstance = spinner;
+        wrapper.style.display = isLoading ? "flex" : "none";
+        isLoading ? spinner.open() : spinner.close();
     }
 }
