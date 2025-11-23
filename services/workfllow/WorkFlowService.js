@@ -56,7 +56,7 @@ export class WorkFlowService {
 
     /** Lấy danh sách trạng thái từ Process Management */
     async getStatusList() {
-        const data = await this.repo.getProcessStatus();
+        const data = await this.repo.getProcessStatus(this.appId);
         return Object.keys(data.states);
     }
 
@@ -67,7 +67,7 @@ export class WorkFlowService {
 
     /** Lấy action name (từ -> đến) */
     async getActionNameByStatus(targetStatus) {
-        const process = await this.repo.getProcessStatus();
+        const process = await this.repo.getProcessStatus(this.appId);
         const found = process.actions.find(a => a.to === targetStatus);
 
         if (!found) {
@@ -77,14 +77,16 @@ export class WorkFlowService {
         return found.name;
     }
 
-    async handleApprove(status, assignee, modal) {
+    async handleApprove(status, assignee, modal, showStatusError, showGeneralError) {
         try {
             if (!status) {
-                return alert("Vui lòng chọn trạng thái.");
+                showStatusError("Vui lòng chọn trạng thái.");
+                return;
             }
             const recordIds = Object.keys(this.loadCheckedRecords());
             if (recordIds.length === 0) {
-                return alert("Vui lòng chọn ít nhất một bản ghi.");
+                showGeneralError("Vui lòng chọn ít nhất một bản ghi.");
+                return;
             }
             const actionName = await this.getActionNameByStatus(status);
             await this.updateWorkflowMany(recordIds, actionName, assignee);
@@ -93,10 +95,10 @@ export class WorkFlowService {
             location.reload();
         } catch (err) {
             console.error(err);
+            showGeneralError(err.message)
             alert("Có lỗi xảy ra: " + err.message);
-        }
-        finally {
-            modal.close()
+        } finally {
+            //
         }
     }
 
@@ -110,7 +112,6 @@ export class WorkFlowService {
     async updateWorkflowMany(recordIds, actionName, assigneeCode) {
 
         const cleanIds = recordIds.filter(id => id && id !== 'undefined' && id.trim() !== '');
-        console.log("cleanIds===> ", cleanIds)
 
         const body = cleanIds.map(id => ({
             id,

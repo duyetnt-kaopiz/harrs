@@ -25,6 +25,17 @@ export class WorkFlowComponent {
             items: statusList.map(s => ({ value: s, label: s }))
         });
 
+        const statusError = document.createElement("div");
+        statusError.className = "wf-error";
+        statusError.style.color = "red";
+        statusError.style.fontSize = "12px";
+        statusError.style.marginTop = "4px";
+        const showGeneralError = document.createElement("div");
+        statusError.className = "wf-error";
+        statusError.style.color = "red";
+        statusError.style.fontSize = "12px";
+        statusError.style.marginTop = "4px";
+
         const assigneeDropdown = new UserOrgGroupSelect({
             label: 'Chọn người xử lý',
             items: assigneeList.map(u => ({
@@ -47,7 +58,9 @@ export class WorkFlowComponent {
             onConfirm({
                 status: statusDropdown.value,
                 assignee: assigneeDropdown.value[0],
-                modal: this.dialog
+                modal: this.dialog,
+                showStatusError: msg => statusError.textContent = msg,
+                showGeneralError: msg => showGeneralError.textContent = msg,
             });
         });
 
@@ -62,10 +75,10 @@ export class WorkFlowComponent {
         const divContent = document.createElement("div");
         divContent.id = "content-modal";
         divContent.appendChild(statusDropdown);
-        divContent.appendChild(document.createElement("br"));
+        divContent.appendChild(statusError);
         divContent.appendChild(document.createElement("br"));
         divContent.appendChild(assigneeDropdown);
-
+        divContent.appendChild(showGeneralError);
         this.dialog = new Dialog({
             title: 'Title',
             header: "Chuyển trạng thái workflow",

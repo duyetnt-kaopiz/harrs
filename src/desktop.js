@@ -42,8 +42,8 @@ kintone.events.on("app.record.index.show", async function(event) {
     const btnModal = renderComponent.renderButtonModal();
     const status = await workFollowService.getStatusList();
     const users = await workFollowService.getAssigneeList();
-    const dialog = renderComponent.renderDialog(status, users, async ({ status, assignee, modal }) => {
-        await workFollowService.handleApprove(status, assignee, modal);
+    const dialog = renderComponent.renderDialog(status, users, async ({status, assignee, modal, showStatusError, showGeneralError}) => {
+        await workFollowService.handleApprove(status, assignee, modal, showStatusError, showGeneralError);
     });
 
     if (btnModal) {

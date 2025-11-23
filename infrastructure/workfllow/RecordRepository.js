@@ -1,10 +1,10 @@
 export class RecordRepository {
 
-    async getProcessStatus() {
+    async getProcessStatus(appId) {
         return await kintone.api(
             kintone.api.url('/k/v1/app/status.json', true),
             'GET',
-            { app: kintone.app.getId() }
+            { app: appId }
         );
     }
 
@@ -15,15 +15,13 @@ export class RecordRepository {
             {}
         );
 
-        return resp.users.map(u => ({
-            code: u.code,
-            name: u.name
+        return resp.users.map(user => ({
+            code: user.code,
+            name: user.name
         }));
     }
 
     async updateRecordStatusMany(payload) {
-
-        console.log("payload: ", payload)
         return await kintone.api(
             kintone.api.url('/k/v1/records/status.json', true),
             "PUT",
