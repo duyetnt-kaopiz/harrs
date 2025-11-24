@@ -2,7 +2,6 @@ import {Button} from 'kintone-ui-component/lib/button';
 import {Dialog} from "kintone-ui-component/lib/dialog";
 import {Dropdown} from "kintone-ui-component/lib/dropdown";
 import {Spinner} from 'kintone-ui-component/lib/spinner';
-import {UserOrgGroupSelect} from "kintone-ui-component/lib/user-org-group-select";
 
 export class WorkFlowComponent {
 
@@ -21,22 +20,18 @@ export class WorkFlowComponent {
             return;
         }
         const statusDropdown = new Dropdown({
-            label: 'Chọn trạng thái',
+            label: '対応ステータス:',
             id: 'status-id',
             requiredIcon: true,
             items: statusList.map(s => ({ value: s, label: s }))
         });
-        const assigneeDropdown = new UserOrgGroupSelect({
-            label: 'Chọn người xử lý',
-            items: assigneeList.map(u => ({
-                value: u.code,
-                label: u.name,
-                type: 'user'
+        const assigneeDropdown = new Dropdown({
+            label: '担当者（オプション）:',
+            items: assigneeList.map(user => ({
+                value: user.code,
+                label: user.name,
             })),
-            className: 'options-class',
-            icon: 'user',
             id: 'user-id',
-            placeholder: 'Please select assignees',
             visible: true,
             disabled: false
         });
@@ -50,7 +45,7 @@ export class WorkFlowComponent {
         showGeneralError.className = "wf-error";
         showGeneralError.style.color = "red";
         showGeneralError.style.fontSize = "12px";
-        showGeneralError.style.marginTop = "4px";
+        showGeneralError.style.marginTop = "40px";
 
         const btnApprove = new Button({ text: "Approve", type: "submit" });
         const cancelBtn = new Button({ text: "Cancel", type: "alert" });
@@ -58,7 +53,7 @@ export class WorkFlowComponent {
         btnApprove.addEventListener('click', () => {
             onConfirm({
                 status: statusDropdown.value,
-                assignee: assigneeDropdown.value[0],
+                assignee: assigneeDropdown.value,
                 modal: this.dialog,
                 showStatusError: msg => statusError.textContent = msg,
                 showGeneralError: msg => showGeneralError.textContent = msg,
@@ -82,9 +77,8 @@ export class WorkFlowComponent {
         divContent.appendChild(showGeneralError);
         this.dialog = new Dialog({
             title: 'Title',
-            header: "Chuyển trạng thái workflow",
-            className: 'options-class',
-            id: 'options-id',
+            header: "プロセス管理ステータスを更新",
+            id: 'modal-approve',
             content: divContent,
             footer: divFooter
         });
@@ -94,10 +88,14 @@ export class WorkFlowComponent {
     /**
      * @function render checkbox all
      * @param table
+     * @param records
      * @param onSelectAll
      */
-    renderHeaderCheckbox(table, onSelectAll) {
+    renderHeaderCheckbox(table, records, onSelectAll) {
         const theadRow = table.querySelector("thead th");
+
+        if (!records.length) return;
+
         if (!theadRow || theadRow.querySelector(".my-safe-checkbox-header")) return;
         const th = document.createElement("th");
         th.className = "my-safe-checkbox-header";
@@ -159,7 +157,7 @@ export class WorkFlowComponent {
         return button;
     }
 
-    createGlobalSpinner(isLoading) {
+    loadingPage(isLoading) {
         const existingWrapper = document.getElementById("wf-global-spinner");
         if (existingWrapper) {
             if (this.spinnerInstance) {
@@ -185,7 +183,7 @@ export class WorkFlowComponent {
         const spinner = new Spinner({
             isVisible: true,
             size: "large",
-            text: 'now loading...',
+            text: 'loading...',
             className: 'options-class',
             id: 'options-id',
             container: document.body

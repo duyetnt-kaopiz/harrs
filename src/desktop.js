@@ -12,15 +12,20 @@ window.addEventListener("load", () => {
     }
 });
 
+kintone.events.on(['app.record.detail.show', 'app.record.edit.show'], function (event) {
+    console.log("====> ", kintone.app.record.getStatusActions())
+    // console.log("====> ", kintone.app.record.getStatus())
+    console.log("====> ", kintone.app.record.getAssignees())
+});
+
 kintone.events.on("app.record.index.show", async function(event) {
     const records = event.records;
-    console.log("recordss===> ", records)
     const elements = kintone.app.getFieldElements("Record_number");
 
     if (!records) return event;
     // add th checkbox all
     const table = document.querySelector("table.recordlist-gaia");
-    renderComponent.renderHeaderCheckbox(table, (checked) => {
+    renderComponent.renderHeaderCheckbox(table, records, (checked) => {
         workFollowService.onCheckAll(checked, table);
     });
 
@@ -42,6 +47,7 @@ kintone.events.on("app.record.index.show", async function(event) {
     const btnModal = renderComponent.renderButtonModal();
     const status = await workFollowService.getStatusList();
     const users = await workFollowService.getAssigneeList();
+    // handle render dialog and confirm approve
     const dialog = renderComponent.renderDialog(status, users, async ({status, assignee, modal, showStatusError, showGeneralError}) => {
         await workFollowService.handleApprove(status, assignee, modal, showStatusError, showGeneralError);
     });

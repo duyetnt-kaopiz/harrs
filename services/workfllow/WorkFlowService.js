@@ -1,6 +1,5 @@
 // services/CheckboxService.js
 import { RecordRepository } from "../../infrastructure/workfllow/RecordRepository.js";
-import { Spinner } from 'kintone-ui-component/lib/spinner';
 import {WorkFlowComponent} from "../../components/workfllow/WorkFlowComponent.js";
 
 export class WorkFlowService {
@@ -65,24 +64,38 @@ export class WorkFlowService {
         if (!btnShowModal) return;
         btnShowModal.disabled = Object.keys(checkedRecords).length === 0;
     }
-    /** Lấy danh sách trạng thái từ Process Management */
+
+    /**
+     * @function get Process status
+     * @returns {Promise<string[]>}
+     */
     async getStatusList() {
         const data = await this.repo.getProcessStatus(this.appId);
         return Object.keys(data.states);
     }
 
-    /** Lấy list user assign */
+    /**
+     * @function get Process assign
+     * @returns {Promise<*>}
+     */
     async getAssigneeList() {
         return await this.repo.getUserList();
     }
 
-    /** Lấy action name (từ -> đến) */
+    /**
+     * @function get action name from list status
+     * @param targetStatus
+     * @returns {Promise<*>}
+     */
     async getActionNameByStatus(targetStatus) {
         const process = await this.repo.getProcessStatus(this.appId);
+
+        console.log("targetStatus:  ", targetStatus)
+        console.log("process:  ", process)
         const found = process.actions.find(a => a.to === targetStatus);
 
         if (!found) {
-            throw new Error("Không tìm thấy action để chuyển tới trạng thái: " + targetStatus);
+            throw new Error("アクションが見つかりません: " + targetStatus);
         }
 
         return found.name;
@@ -91,26 +104,25 @@ export class WorkFlowService {
     async handleApprove(status, assignee, modal, showStatusError, showGeneralError) {
         try {
             if (!status) {
-                showStatusError("Vui lòng chọn trạng thái.");
+                showStatusError("状態を選択してください。");
                 return;
             }
             const recordIds = Object.keys(this.loadCheckedRecords());
             if (recordIds.length === 0) {
-                showGeneralError("Vui lòng chọn ít nhất một bản ghi.");
+                showGeneralError("少なくとも1件のレコードを選択してください。");
                 return;
             }
-            this.component.createGlobalSpinner(true);
+            this.component.loadingPage(true);
             const actionName = await this.getActionNameByStatus(status);
             await this.updateWorkflowMany(recordIds, actionName, assignee);
 
-            alert("Cập nhật trạng thái thành công!");
+            alert("状態を正常に更新しました！");
             location.reload();
         } catch (err) {
             console.error(err);
             showGeneralError(err.message)
-            alert("Có lỗi xảy ra: " + err.message);
         } finally {
-            this.component.createGlobalSpinner(false);
+            this.component.loadingPage(false);
         }
     }
 
@@ -126,9 +138,10 @@ export class WorkFlowService {
         const body = cleanIds.map(id => ({
             id,
             action: actionName,
-            assignee: assigneeCode
+            ...(assigneeCode ? { assignee: assigneeCode } : {})
         }));
 
+        console.log("body: ", body)
         const payload = {
             app: this.appId,
             records: body

@@ -28,4 +28,13 @@ export class RecordRepository {
             payload
         );
     }
+
+    async getRecordsByIds(appId, ids) {
+        const query = `"$id" in (${ids.join(",")})`;
+        return await kintone.api("/k/v1/records", "GET", {
+            app: appId,
+            query
+        });
+    }
+
 }
