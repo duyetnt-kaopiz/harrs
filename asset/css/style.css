@@ -1,0 +1,24 @@
+#content-modal {
+    width: 450px;
+    min-height: 250px;
+}
+#status-id {
+    width: 100%;
+}
+#user-id {
+    width: 100%;
+}
+#btn-show-modal>button {
+    background-color: rgb(40, 167, 69);
+    color: white;
+}
+#btn-show-modal>button:disabled {
+    padding: 8px 16px;
+    background: rgb(40, 167, 69);
+    color: white;
+    border: none;
+    font-weight: bold;
+    font-size: 14px;
+    opacity: 0.5;
+    cursor: not-allowed;
+}
