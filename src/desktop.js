@@ -12,11 +12,6 @@ window.addEventListener("load", () => {
     }
 });
 
-kintone.events.on(['app.record.detail.show', 'app.record.edit.show'], function (event) {
-    console.log("====> ", kintone.app.record.getStatusActions())
-    // console.log("====> ", kintone.app.record.getStatus())
-    console.log("====> ", kintone.app.record.getAssignees())
-});
 
 kintone.events.on("app.record.index.show", async function(event) {
     const records = event.records;

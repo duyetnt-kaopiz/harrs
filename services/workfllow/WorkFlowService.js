@@ -82,25 +82,16 @@ export class WorkFlowService {
         return await this.repo.getUserList();
     }
 
+
     /**
-     * @function get action name from list status
-     * @param targetStatus
-     * @returns {Promise<*>}
+     *
+     * @param status
+     * @param assignee
+     * @param modal
+     * @param showStatusError
+     * @param showGeneralError
+     * @returns {Promise<void>}
      */
-    async getActionNameByStatus(targetStatus) {
-        const process = await this.repo.getProcessStatus(this.appId);
-
-        console.log("targetStatus:  ", targetStatus)
-        console.log("process:  ", process)
-        const found = process.actions.find(a => a.to === targetStatus);
-
-        if (!found) {
-            throw new Error("アクションが見つかりません: " + targetStatus);
-        }
-
-        return found.name;
-    }
-
     async handleApprove(status, assignee, modal, showStatusError, showGeneralError) {
         try {
             if (!status) {
@@ -113,8 +104,7 @@ export class WorkFlowService {
                 return;
             }
             this.component.loadingPage(true);
-            const actionName = await this.getActionNameByStatus(status);
-            await this.updateWorkflowMany(recordIds, actionName, assignee);
+            await this.updateWorkflowMany(recordIds, status, assignee);
 
             alert("状態を正常に更新しました！");
             location.reload();
@@ -129,23 +119,40 @@ export class WorkFlowService {
     /**
      * @function handle update status workflow with path
      * @param recordIds
-     * @param actionName
+     * @param targetStatus
      * @param assigneeCode
      * @returns {Promise<*>}
      */
-    async updateWorkflowMany(recordIds, actionName, assigneeCode) {
-        const cleanIds = recordIds.filter(id => id && id !== 'undefined' && id.trim() !== '');
-        const body = cleanIds.map(id => ({
-            id,
-            action: actionName,
-            ...(assigneeCode ? { assignee: assigneeCode } : {})
-        }));
+    async updateWorkflowMany(recordIds, targetStatus, assigneeCode) {
+        let ids = recordIds.filter(id => id && id !== 'undefined' && id.trim() !== '');
+        ids = ids.map(id => `"${id}"`).join(",");
+        const recordsData = await this.repo.getRecordsByIds(this.appId, ids);
+        const process = await this.repo.getProcessStatus(this.appId);
 
-        console.log("body: ", body)
+        const body = recordsData.records.map(record => {
+            const id = record.$id.value;
+            const currentStatus = record["Status"].value;
+            const action = process.actions.find(action =>
+                action.from === currentStatus && action.to === targetStatus
+            );
+
+            if (!action) {
+                throw new Error(`アクションが見つかりません: ${id}: ${currentStatus} → ${targetStatus}`);
+            }
+
+            return {
+                id,
+                action: action.name,
+                ...(assigneeCode ? { assignee: assigneeCode } : {})
+            };
+        });
+
         const payload = {
             app: this.appId,
             records: body
         };
+
         return await this.repo.updateRecordStatusMany(payload);
     }
+
 }

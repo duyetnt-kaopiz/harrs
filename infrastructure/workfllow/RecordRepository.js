@@ -30,7 +30,7 @@ export class RecordRepository {
     }
 
     async getRecordsByIds(appId, ids) {
-        const query = `"$id" in (${ids.join(",")})`;
+        const query = `$id in (${ids})`;
         return await kintone.api("/k/v1/records", "GET", {
             app: appId,
             query
